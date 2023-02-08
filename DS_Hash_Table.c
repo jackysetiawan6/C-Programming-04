@@ -140,7 +140,7 @@ void HashNode_printAll()
             HashNode *curr = HashTable[i];
             while (curr != NULL)
             {
-                printf("%s ", curr->value);
+                printf("%s -> ", curr->value);
                 curr = curr->next;
             }
             printf("\n");
@@ -153,11 +153,13 @@ int main()
     HashNode_insertCollision("Hello");
     HashNode_insertCollision("World");
     HashNode_insertCollision("!");
+    HashNode_insertCollision("Hello");
     HashNode_printAll();
     printf("\n");
-    HashNode_remove("World");
-    HashNode_remove("Hello");
-    HashNode_remove("!");
+    HashNode_removeCollision("Hello");
+    HashNode_removeCollision("World");
+    HashNode_removeCollision("!");
+    HashNode_removeCollision("Hello");
     HashNode_printAll();
     return 0;
 }
