@@ -14,8 +14,7 @@ BSTNode *BSTNode_new(int value)
 {
     BSTNode *node = (BSTNode*)malloc(sizeof(BSTNode));
     node->value = value;
-    node->left = NULL;
-    node->right = NULL;
+    node->left = node->right = NULL;
     return node;
 }
 
@@ -61,10 +60,17 @@ BSTNode *BSTNode_remove(BSTNode *curr, int value)
         }
         else
         {
+            // Sucessor
             BSTNode *temp = curr->right;
             while (temp->left) temp = temp->left;
             curr->value = temp->value;
             curr->right = BSTNode_remove(curr->right, temp->value);
+
+            // Predecessor
+            // BSTNode *temp = curr->left;
+            // while (temp->right) temp = temp->right;
+            // curr->value = temp->value;
+            // curr->left = BSTNode_remove(curr->left, temp->value);
         }
     }
     return curr;
@@ -87,20 +93,20 @@ void printPrefix(BSTNode *curr)
     printPrefix(curr->right);
 }
 
-void printPostfix(BSTNode *curr)
-{
-    if (!curr) return;
-    printPostfix(curr->left);
-    printPostfix(curr->right);
-    printf("%d ", curr->value);
-}
-
 void printInfix(BSTNode *curr)
 {
     if (!curr) return;
     printInfix(curr->left);
     printf("%d ", curr->value);
     printInfix(curr->right);
+}
+
+void printPostfix(BSTNode *curr)
+{
+    if (!curr) return;
+    printPostfix(curr->left);
+    printPostfix(curr->right);
+    printf("%d ", curr->value);
 }
 
 int main()
