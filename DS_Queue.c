@@ -33,12 +33,29 @@ void QueueNode_enqueue(char *name, enum Membership membership)
     }
     else
     {
-        QueueNode *curr = first;
-        while (curr->next != NULL)
+        if (node->membership > first->membership)
         {
-            curr = curr->next;
+            node->next = first;
+            first = node;
         }
-        curr->next = node;
+        else
+        {
+            QueueNode *curr = first;
+            while (curr->next != NULL)
+            {
+                if (node->membership > curr->next->membership)
+                {
+                    node->next = curr->next;
+                    curr->next = node;
+                    break;
+                }
+                curr = curr->next;
+            }
+            if (!curr->next)
+            {
+                curr->next = node;
+            }
+        }
     }
 }
 
