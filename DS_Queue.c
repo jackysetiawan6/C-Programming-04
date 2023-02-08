@@ -77,12 +77,12 @@ void QueueNode_deleteAll()
     }
 }
 
-void QueueNode_print()
+void printAll()
 {
     QueueNode *curr = first;
     while (curr != NULL)
     {
-        printf("%s %d\n", curr->name, curr->membership);
+        printf("%s %d -> ", curr->name, curr->membership);
         curr = curr->next;
     }
 }
@@ -94,12 +94,9 @@ int main()
     QueueNode_enqueue("Peter", GOLD);
     QueueNode_enqueue("Paul", PLATINUM);
     QueueNode_enqueue("Mark", DIAMOND);
-    QueueNode_print();
-    QueueNode_dequeue();
-    QueueNode_dequeue();
-    QueueNode_dequeue();
-    QueueNode_dequeue();
-    QueueNode_dequeue();
-    QueueNode_print();
+    printAll();
+    printf("\n");
+    QueueNode_deleteAll();
+    printAll();
     return 0;
 }

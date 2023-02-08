@@ -131,7 +131,7 @@ void HashNode_deleteAll()
     }
 }
 
-void HashNode_printAll()
+void printAll()
 {
     for (int i = 0; i < SIZE; i++)
     {
@@ -150,16 +150,12 @@ void HashNode_printAll()
 
 int main()
 {
-    HashNode_insertCollision("Hello");
-    HashNode_insertCollision("World");
-    HashNode_insertCollision("!");
-    HashNode_insertCollision("Hello");
-    HashNode_printAll();
-    printf("\n");
-    HashNode_removeCollision("Hello");
-    HashNode_removeCollision("World");
-    HashNode_removeCollision("!");
-    HashNode_removeCollision("Hello");
-    HashNode_printAll();
+    HashNode_insertCollision("Jacky");
+    HashNode_insertCollision("Jacky Setiawan");
+    HashNode_insertCollision("Jennifer");
+    HashNode_insertCollision("Athalia");
+    printAll();
+    HashNode_deleteAll();
+    printAll();
     return 0;
 }

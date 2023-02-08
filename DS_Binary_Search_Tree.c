@@ -120,7 +120,7 @@ int main()
     root = BSTNode_insert(root, 40);
     printInfix(root);
     printf("\n");
-    root = BSTNode_remove(root, 15);
+    root = BSTNode_deleteAll(root);
     printInfix(root);
     return 0;
 }

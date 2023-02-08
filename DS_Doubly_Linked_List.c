@@ -110,8 +110,8 @@ int main()
     DLLNode_insert(50);
     DLLNode_insert(60);
     printFront();
-    DLLNode_deleteAll();
     printf("\n");
+    DLLNode_deleteAll();
     printBack();
     return 0;
 }

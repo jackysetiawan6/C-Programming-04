@@ -68,7 +68,7 @@ void SLLNode_deleteAll()
     head = NULL;
 }
 
-void printFront()
+void printAll()
 {
     SLLNode *curr = head;
     while (curr != NULL)
@@ -86,9 +86,9 @@ int main()
     SLLNode_insert(40);
     SLLNode_insert(50);
     SLLNode_insert(60);
-    printFront();
-    SLLNode_deleteAll();
+    printAll();
     printf("\n");
-    printFront();
+    SLLNode_deleteAll();
+    printAll();
     return 0;
 }
