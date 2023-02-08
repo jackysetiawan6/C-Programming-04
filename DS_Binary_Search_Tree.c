@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
 
 typedef struct BSTNode
 {
@@ -18,11 +16,12 @@ BSTNode *BSTNode_new(int value)
     return node;
 }
 
-BSTNode *BSTNode_insert(BSTNode *curr, BSTNode *node)
+BSTNode *BSTNode_insert(BSTNode *curr, int value)
 {
+    BSTNode *node = BSTNode_new(value);
     if (!curr) return node;
-    else if (node->value < curr->value) curr->left = BSTNode_insert(curr->left, node);
-    else if (node->value > curr->value) curr->right = BSTNode_insert(curr->right, node);
+    else if (value < curr->value) curr->left = BSTNode_insert(curr->left, value);
+    else if (value > curr->value) curr->right = BSTNode_insert(curr->right, value);
     return curr;
 }
 
@@ -113,15 +112,15 @@ int main()
 {
     system("cls");
     BSTNode *root = NULL;
-    root = BSTNode_insert(root, BSTNode_new(20));
-    root = BSTNode_insert(root, BSTNode_new(10));
-    root = BSTNode_insert(root, BSTNode_new(5));
-    root = BSTNode_insert(root, BSTNode_new(15));
-    root = BSTNode_insert(root, BSTNode_new(30));
-    root = BSTNode_insert(root, BSTNode_new(40));
+    root = BSTNode_insert(root, 20);
+    root = BSTNode_insert(root, 10);
+    root = BSTNode_insert(root, 5);
+    root = BSTNode_insert(root, 15);
+    root = BSTNode_insert(root, 30);
+    root = BSTNode_insert(root, 40);
     printInfix(root);
     printf("\n");
-    root = BSTNode_deleteAll(root);
+    root = BSTNode_remove(root, 15);
     printInfix(root);
     return 0;
 }
