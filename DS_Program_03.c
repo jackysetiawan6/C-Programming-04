@@ -116,8 +116,8 @@ BSTCustomer *searchCustomer(BSTCustomer *root, char *name)
 BSTMembership *searchMembership(BSTMembership *root, char *name)
 {
     if (!root) return NULL;
-    if (strcmp(root->name, name) == 0) return root;
-    if (strcmp(root->name, name) > 0) return searchMembership(root->left, name);
+    if (strcmpi(root->name, name) == 0) return root;
+    if (strcmpi(root->name, name) > 0) return searchMembership(root->left, name);
     return searchMembership(root->right, name);
 }
 
