@@ -41,68 +41,20 @@ BSTMembership *createMembership(char *name)
     return newMembership;
 }
 
-void insertCustomer(char *name, char *membership)
+BSTCustomer *insertCustomer(BSTCustomer *root, char *name, char *membership)
 {
-    BSTCustomer *newCustomer = createCustomer(name, membership);
-    if (rootCustomer == NULL)
-    {
-        rootCustomer = newCustomer;
-        return;
-    }
-    BSTCustomer *temp = rootCustomer;
-    while (1)
-    {
-        if (strcmp(temp->name, name) > 0)
-        {
-            if (temp->left == NULL)
-            {
-                temp->left = newCustomer;
-                return;
-            }
-            temp = temp->left;
-        }
-        else
-        {
-            if (temp->right == NULL)
-            {
-                temp->right = newCustomer;
-                return;
-            }
-            temp = temp->right;
-        }
-    }
+    if (!root) return createCustomer(name, membership);
+    if (strcmp(root->name, name) > 0) root->left = insertCustomer(root->left, name, membership);
+    else if (strcmp(root->name, name) < 0) root->right = insertCustomer(root->right, name, membership);
+    return root;
 }
 
-void insertMembership(char *name)
+BSTMembership *insertMembership(BSTMembership *root, char *name)
 {
-    BSTMembership *newMembership = createMembership(name);
-    if (rootMembership == NULL)
-    {
-        rootMembership = newMembership;
-        return;
-    }
-    BSTMembership *temp = rootMembership;
-    while (1)
-    {
-        if (strcmp(temp->name, name) > 0)
-        {
-            if (temp->left == NULL)
-            {
-                temp->left = newMembership;
-                return;
-            }
-            temp = temp->left;
-        }
-        else
-        {
-            if (temp->right == NULL)
-            {
-                temp->right = newMembership;
-                return;
-            }
-            temp = temp->right;
-        }
-    }
+    if (!root) return createMembership(name);
+    if (strcmpi(root->name, name) > 0) root->left = insertMembership(root->left, name);
+    else if (strcmpi(root->name, name) < 0) root->right = insertMembership(root->right, name);
+    return root;
 }
 
 BSTCustomer *searchCustomer(BSTCustomer *root, char *name)
@@ -195,7 +147,7 @@ void menu01()
     }
     else
     {
-        insertCustomer(name, membership);
+        rootCustomer = insertCustomer(rootCustomer, name, membership);
         printf("Customer added successfully! ");
     }
     Sleep(1000);
@@ -240,11 +192,11 @@ void menu03()
 
 int main()
 {
-    insertMembership("Non-Member");
-    insertMembership("Gold");
-    insertMembership("Bronze");
-    insertMembership("Platinum");
-    insertMembership("Silver");
+    rootMembership = insertMembership(rootMembership, "Non-Member");
+    rootMembership = insertMembership(rootMembership, "Gold");
+    rootMembership = insertMembership(rootMembership, "Bronze");
+    rootMembership = insertMembership(rootMembership, "Platinum");
+    rootMembership = insertMembership(rootMembership, "Silver");
     char choice[100] = "";
     while (atoi(choice) != 4)
     {
@@ -259,16 +211,11 @@ int main()
         gets(choice);
         switch (atoi(choice))
         {
-            case 1:
-                menu01(); break;
-            case 2:
-                menu02(); break;
-            case 3:
-                menu03(); break;
-            case 4:
-                exit(0); break;
-            default:
-                printf("Invalid choice. Please try again. "); Sleep(1000); break;
+            case 1: menu01(); break;
+            case 2: menu02(); break;
+            case 3: menu03(); break;
+            case 4: exit(0); break;
+            default: printf("Invalid choice. Please try again. "); Sleep(1000); break;
         }
     }
     return 0;
