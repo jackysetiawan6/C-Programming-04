@@ -17,11 +17,13 @@
     10. Table Size = 1000
     11. Create the hash table using chaining method (linked list)
     12. Please try the program to see the result
+    13. Don't forget to save customer data to the file named "customers.in"
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
 #define SIZE 1000
 
 // ================================================================================================= Binary Search Tree
@@ -237,9 +239,42 @@ int getHashNodeLevel(const char *name)
     return 0;
 }
 
-// ============================================================================================================== Queue
+// ====================================================================================================== Miscellaneous
 
 int countQueue = 0;
+void saveFile()
+{
+    FILE *file = fopen("customers.in", "w");
+    for (int i = 0; i < SIZE; i++)
+    {
+        if (Table[i] != NULL)
+        {
+            struct hashNode *temp = Table[i]->head;
+            while (temp != NULL)
+            {
+                fprintf(file, "%s#%s\n", temp->name, temp->membership);
+                temp = temp->next;
+            }
+        }
+    }
+    fclose(file);
+}
+void loadFile()
+{
+    FILE *file = fopen("customers.in", "r");
+    if (file == NULL) return;
+    while (!feof(file))
+    {
+        char name[100] = "", membership[100] = "";
+        fscanf(file, "%[^#]#%[^\n]\n", name, membership);
+        insertHashNode(name, membership);
+        countQueue++;
+    }
+    fclose(file);
+}
+
+// ========================================================================================================== Main Menu
+
 void menuDisplay01()
 {
     system("cls");
@@ -360,6 +395,7 @@ void menu05()
 int main()
 {
     initializeTree();
+    loadFile();
     int choice = -1;
     while (choice != 5)
     {
@@ -371,6 +407,7 @@ int main()
         else if (choice == 4) menu04();
         else if (choice == 5) menu05();
         else printf("> Please enter the number between 1 and 5 only.\n");
+        saveFile();
     }
     return 0;
 }
