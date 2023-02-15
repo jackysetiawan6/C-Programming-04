@@ -1,111 +1,258 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-struct data { char type[20]; int furs, meat, firewood, herbs; } database[100] = {};
-int choice = -1, count = 0;
+#include <time.h>
+int choice = -1, count = 0, maxIndex = 200;
+struct hashItem
+{
+    char *key, *name, *phone, *address, *city;
+    struct hashItem *next;
+};
+struct hashTable
+{
+    int size, count; struct hashItem **items;
+};
+unsigned long hash(char *str)
+{
+    unsigned long hash = 5381;
+    int c;
+    while (c = *str++) hash = ((hash << 5) + hash) + c;
+    return hash;
+}
+struct hashItem *createItem(char *key, char *name, char *phone, char *address, char *city)
+{
+    struct hashItem *newItem = (struct hashItem *)malloc(sizeof(struct hashItem));
+    newItem->key = (char *)malloc(strlen(key) + 1);
+    newItem->name = (char *)malloc(strlen(name) + 1);
+    newItem->phone = (char *)malloc(strlen(phone) + 1);
+    newItem->address = (char *)malloc(strlen(address) + 1);
+    newItem->city = (char *)malloc(strlen(city) + 1);
+    strcpy(newItem->key, key);
+    strcpy(newItem->name, name);
+    strcpy(newItem->phone, phone);
+    strcpy(newItem->address, address);
+    strcpy(newItem->city, city);
+    newItem->next = NULL;
+    return newItem;
+}
+struct hashTable *createTable(int size)
+{
+    struct hashTable *ht = (struct hashTable *)malloc(sizeof(struct hashTable));
+    ht->size = size;
+    ht->count = 0;
+    ht->items = (struct hashItem **)calloc(ht->size, sizeof(struct hashItem *));
+    return ht;
+}
+void insertItem(struct hashTable *ht, char *key, char *name, char *phone, char *address, char *city)
+{
+    struct hashItem *newItem = createItem(key, name, phone, address, city);
+    int index = hash(key) % ht->size;
+    struct hashItem *current = ht->items[index];
+    if (current == NULL)
+    {
+        ht->items[index] = newItem;
+        ht->count++;
+    }
+    else
+    {
+        while (current->next != NULL) current = current->next;
+        current->next = newItem;
+    }
+}
+struct hashItem *searchItem(struct hashTable *ht, char *key)
+{
+    int index = hash(key) % ht->size;
+    struct hashItem *current = ht->items[index];
+    while (current != NULL)
+    {
+        if (strcmp(current->key, key) == 0) return current;
+        current = current->next;
+    }
+    return NULL;
+}
+void deleteItem(struct hashTable *ht, char *key)
+{
+    int index = hash(key) % ht->size;
+    struct hashItem *current = ht->items[index];
+    struct hashItem *prev = NULL;
+    while (current != NULL)
+    {
+        if (strcmp(current->key, key) == 0)
+        {
+            if (prev == NULL)
+            {
+                ht->items[index] = current->next;
+            }
+            else
+            {
+                prev->next = current->next;
+            }
+            ht->count--;
+            free(current);
+            return;
+        }
+        prev = current;
+        current = current->next;
+    }
+}
 void displayMenu()
 {
     system("cls");
-    printf("Exploration Game            \n");
-    printf("============================\n");
-    printf("1. Explore the Woods!       \n");
-    printf("2. Exploration Records      \n");
-    printf("3. Clear Exploration Records\n");
-    printf("4. Exit                     \n");
-    printf(">> Choice: "); scanf("%d", &choice); getchar();
+    printf("My Hashed Phone Book\n");
+    printf("1. Insert new phone number\n");
+    printf("2. View all phone book\n");
+    printf("3. Update phone info by name\n");
+    printf("4. Remove phone info by name\n");
+    printf("5. Search phone by name\n");
+    printf("6. Exit\n");
+    printf("Choose [ 1 - 6 ] : "); scanf("%d", &choice); getchar();
 }
-void menu01()
+void menu01(struct hashTable *ht)
 {
     system("cls");
-    char type[20] = {};
-    int hours = -1, furs = 0, meat = 0, firewood = 0, herbs = 0;
-    printf("Explore the Woods!\n");
-    printf("==================\n");
-    while (strcmp(type, "hunting") != 0 && strcmp(type, "gathering") != 0)
+    char tempName[100] = {}, tempPhone[28] = {}, tempAddr[100] = {}, tempCity[200] = {};
+    int valPhone = 0;
+    while (strlen(tempName) < 3 || strlen(tempName) > 50)
     {
-        printf("Choose exploration type [hunting|gathering]: ");
-        gets(type);
+        printf("Insert name [ 3 - 50 characters ] : "); gets(tempName);
     }
-    while (hours < 1 || hours > 3)
+    while (!valPhone)
     {
-        printf("How long do you want to do %s? [1-3 hours]: ", type);
-        scanf("%d", &hours); getchar();
+        printf("Insert phone number [ 08XX-XXXX-XXXX format ] : "); gets(tempPhone);
+        if (strlen(tempPhone) != 14) printf("Phone number must be 14 characters long!\n");
+        else if (tempPhone[0] != '0' || tempPhone[1] != '8') printf("Phone number must starts with 0 and 8!\n");
+        else if (tempPhone[4] != '-' || tempPhone[9] != '-') printf("Invalid format!\n");
+        else valPhone = 1;
     }
-    printf("                                        \n");
-    printf("You explored the darkside of the woods!!\n");
-    printf("You obtained:                           \n");
-    if (strcmp(type, "hunting") == 0)
+    while (strcmp(tempAddr + (strlen(tempAddr) - 6), "street") != 0)
     {
-        furs = rand() % 11, meat = rand() % 6, firewood = 0, herbs = 0;
-        printf(" %-02d piece(s) of furs\n", furs);
-        printf(" %-02d slice(s) of meat\n", meat);
+        printf("Insert address [ ends with street ] : "); gets(tempAddr);
     }
-    else if (strcmp(type, "gathering") == 0)
+    while (strlen(tempCity) < 3 || strlen(tempCity) > 100)
     {
-        firewood = rand() % 101, herbs = rand() % 6, furs = 0, meat = 0;
-        printf(" %-02d piece(s) of firewood\n", firewood);
-        printf(" %-02d pouch(s) of herbs\n", herbs);
+        printf("Insert city [ 3 - 100 characters ] : "); gets(tempCity);
     }
-    printf("                                        \n");
-    strcpy(database[count].type, type);
-    database[count].furs = furs;
-    database[count].meat = meat;
-    database[count].firewood = firewood;
-    database[count].herbs = herbs;
-    count++;
-    printf("Press enter to continue... "); getchar();
+    insertItem(ht, tempName, tempName, tempPhone, tempAddr, tempCity);
+    printf("Data inserted successfully!\n");
+    printf("Press any key to continue... "); getchar();
 }
-void menu02()
+void menu02(struct hashTable *ht)
 {
     system("cls");
-    printf("Exploration Records\n");
-    printf("===================\n");
-    for (int i = 0; i < count; i++)
+    if (ht->count == 0) printf("There are no data!\n");
+    else
     {
-        printf("Exploration number %03d:\n", i + 1);
-        printf("You go %s and got\t: ", database[i].type);
-        if (strcmp(database[i].type, "hunting") == 0)
+        for (int i = 0; i < ht->size; i++)
         {
-            printf("%d piece(s) of furs and ", database[i].furs);
-            printf("%d slice(s) of meat\n", database[i].meat);
+            struct hashItem *current = ht->items[i];
+            if (current != NULL)
+            {
+                printf("%d ->\n", i);
+                while (current != NULL)
+                {
+                    printf("\t%s %s %s %s\n", current->name, current->phone, current->address, current->city);
+                    current = current->next;
+                }
+            }
         }
-        else if (strcmp(database[i].type, "gathering") == 0)
-        {
-            printf("%d piece(s) of firewood and ", database[i].firewood);
-            printf("%d pouch(s) of herbs\n", database[i].herbs);
-        }
-        printf("\n");
     }
-    printf("\n");
-    printf("Press enter to continue... "); getchar();
+    printf("Press any key to continue... "); getchar();
 }
-void menu03()
+void menu03(struct hashTable *ht)
 {
-    system("cls");
-    printf("Clear Exploration Records   \n");
-    printf("============================\n");
-    printf("Exploration records cleared!\n");
-    printf("\n");
-    count = 0;
-    printf("Press enter to continue... "); getchar();
+    char tempName[100] = {}, tempPhone[28] = {}, tempAddr[100] = {}, tempCity[200] = {};
+    int valPhone = 0;
+    while (strlen(tempName) < 3 || strlen(tempName) > 50)
+    {
+        printf("Insert name [ 3 - 50 characters ] : "); gets(tempName);
+    }
+    struct hashItem *current = searchItem(ht, tempName);
+    if (current == NULL) printf("Not found!\n");
+    else
+    {
+        while (!valPhone)
+        {
+            printf("Insert phone number [ 08XX-XXXX-XXXX format ] : "); gets(tempPhone);
+            if (strlen(tempPhone) != 14) printf("Phone number must be 14 characters long!\n");
+            else if (tempPhone[0] != '0' || tempPhone[1] != '8') printf("Phone number must starts with 0 and 8!\n");
+            else if (tempPhone[4] != '-' || tempPhone[9] != '-') printf("Invalid format!\n");
+            else valPhone = 1;
+        }
+        while (strcmp(tempAddr + (strlen(tempAddr) - 6), "street") != 0)
+        {
+            printf("Insert address [ ends with street ] : "); gets(tempAddr);
+        }
+        while (strlen(tempCity) < 3 || strlen(tempCity) > 100)
+        {
+            printf("Insert city [ 3 - 100 characters ] : "); gets(tempCity);
+        }
+        strcpy(current->phone, tempPhone);
+        strcpy(current->address, tempAddr);
+        strcpy(current->city, tempCity);
+        printf("Data updated successfully!\n");
+    }
+    printf("Press any key to continue... "); getchar();
 }
-void menu04()
+void menu04(struct hashTable *ht)
 {
-    system("cls");
-    printf("Thank you for playing!\n");
-    printf("\n");
-    printf("Press enter to exit... "); getchar();
-    exit(0);
+    char tempName[100] = {};
+    while (strlen(tempName) < 3 || strlen(tempName) > 50)
+    {
+        printf("Insert name [ 3 - 50 characters ] : "); gets(tempName);
+    }
+    struct hashItem *current = searchItem(ht, tempName);
+    if (current == NULL) printf("Not found!\n");
+    else
+    {
+        deleteItem(ht, tempName);
+        if (ht->count == 0) printf("There are no data!\n");
+        else
+        {
+            for (int i = 0; i < ht->size; i++)
+            {
+                struct hashItem *current = ht->items[i];
+                if (current != NULL)
+                {
+                    printf("%d ->\n", i);
+                    while (current != NULL)
+                    {
+                        printf("\t%s %s %s %s\n", current->name, current->phone, current->address, current->city);
+                        current = current->next;
+                    }
+                }
+            }
+        }
+    }
+    printf("Press any key to continue... "); getchar();
+}
+void menu05(struct hashTable *ht)
+{
+    char tempName[100] = {};
+    while (strlen(tempName) < 3 || strlen(tempName) > 50)
+    {
+        printf("Insert name [ 3 - 50 characters ] : "); gets(tempName);
+    }
+    struct hashItem *current = searchItem(ht, tempName);
+    if (current == NULL) printf("Not found!\n");
+    else
+    {
+        printf("Data found!\n");
+        printf("%s %s %s %s\n", current->name, current->phone, current->address, current->city);
+    }
+    printf("Press any key to continue... "); getchar();
 }
 int main()
 {
-    while (choice != 4)
+    struct hashTable *ht = createTable(maxIndex);
+    while (choice != 6)
     {
         displayMenu();
-        if (choice == 1) menu01();
-        else if (choice == 2) menu02();
-        else if (choice == 3) menu03();
-        else if (choice == 4) menu04();
+        if (choice == 1) menu01(ht);
+        else if (choice == 2) menu02(ht);
+        else if (choice == 3) menu03(ht);
+        else if (choice == 4) menu04(ht);
+        else if (choice == 5) menu05(ht);
+        else if (choice == 6) return 0;
     }
     return 0;
 }
