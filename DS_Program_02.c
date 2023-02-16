@@ -1,258 +1,230 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-int choice = -1, count = 0, maxIndex = 200;
-struct hashItem
+#include <ctype.h>
+
+// ================================================================================================= Binary Search Tree
+
+typedef struct BSTNode
 {
-    char *key, *name, *phone, *address, *city;
-    struct hashItem *next;
-};
-struct hashTable
+    char name[100];
+    char NIM[100];
+    struct BSTNode *left;
+    struct BSTNode *right;
+} BSTNode;
+BSTNode *root = NULL;
+BSTNode *createNode(const char *name, const char *NIM)
 {
-    int size, count; struct hashItem **items;
-};
-unsigned long hash(char *str)
-{
-    unsigned long hash = 5381;
-    int c;
-    while (c = *str++) hash = ((hash << 5) + hash) + c;
-    return hash;
+    BSTNode *newNode = (BSTNode*)malloc(sizeof(BSTNode));
+    strcpy(newNode->name, name);
+    strcpy(newNode->NIM, NIM);
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
 }
-struct hashItem *createItem(char *key, char *name, char *phone, char *address, char *city)
+BSTNode *searchNode(BSTNode *root, const char *name)
 {
-    struct hashItem *newItem = (struct hashItem *)malloc(sizeof(struct hashItem));
-    newItem->key = (char *)malloc(strlen(key) + 1);
-    newItem->name = (char *)malloc(strlen(name) + 1);
-    newItem->phone = (char *)malloc(strlen(phone) + 1);
-    newItem->address = (char *)malloc(strlen(address) + 1);
-    newItem->city = (char *)malloc(strlen(city) + 1);
-    strcpy(newItem->key, key);
-    strcpy(newItem->name, name);
-    strcpy(newItem->phone, phone);
-    strcpy(newItem->address, address);
-    strcpy(newItem->city, city);
-    newItem->next = NULL;
-    return newItem;
-}
-struct hashTable *createTable(int size)
-{
-    struct hashTable *ht = (struct hashTable *)malloc(sizeof(struct hashTable));
-    ht->size = size;
-    ht->count = 0;
-    ht->items = (struct hashItem **)calloc(ht->size, sizeof(struct hashItem *));
-    return ht;
-}
-void insertItem(struct hashTable *ht, char *key, char *name, char *phone, char *address, char *city)
-{
-    struct hashItem *newItem = createItem(key, name, phone, address, city);
-    int index = hash(key) % ht->size;
-    struct hashItem *current = ht->items[index];
-    if (current == NULL)
-    {
-        ht->items[index] = newItem;
-        ht->count++;
-    }
+    if (root == NULL) return NULL;
     else
     {
-        while (current->next != NULL) current = current->next;
-        current->next = newItem;
+        if (strcmpi(name, root->name) == 0) return root;
+        else if (strcmpi(name, root->name) < 0) return searchNode(root->left, name);
+        else return searchNode(root->right, name);
     }
 }
-struct hashItem *searchItem(struct hashTable *ht, char *key)
+BSTNode *insertNode(BSTNode *root, const char *name, const char *NIM)
 {
-    int index = hash(key) % ht->size;
-    struct hashItem *current = ht->items[index];
-    while (current != NULL)
+    if (root == NULL) return createNode(name, NIM);
+    else
     {
-        if (strcmp(current->key, key) == 0) return current;
-        current = current->next;
+        if (strcmpi(name, root->name) < 0) root->left = insertNode(root->left, name, NIM);
+        else if (strcmpi(name, root->name) > 0) root->right = insertNode(root->right, name, NIM);
+        return root;
     }
-    return NULL;
 }
-void deleteItem(struct hashTable *ht, char *key)
+BSTNode *deleteNode(BSTNode *root, const char *name)
 {
-    int index = hash(key) % ht->size;
-    struct hashItem *current = ht->items[index];
-    struct hashItem *prev = NULL;
-    while (current != NULL)
+    if (root == NULL) return NULL;
+    else
     {
-        if (strcmp(current->key, key) == 0)
+        if (strcmpi(name, root->name) < 0) root->left = deleteNode(root->left, name);
+        else if (strcmpi(name, root->name) > 0) root->right = deleteNode(root->right, name);
+        else
         {
-            if (prev == NULL)
+            if (root->left == NULL && root->right == NULL)
             {
-                ht->items[index] = current->next;
+                free(root);
+                root = NULL;
+            }
+            else if (root->left == NULL)
+            {
+                BSTNode *temp = root;
+                root = root->right;
+                free(temp);
+            }
+            else if (root->right == NULL)
+            {
+                BSTNode *temp = root;
+                root = root->left;
+                free(temp);
             }
             else
             {
-                prev->next = current->next;
-            }
-            ht->count--;
-            free(current);
-            return;
-        }
-        prev = current;
-        current = current->next;
-    }
-}
-void displayMenu()
-{
-    system("cls");
-    printf("My Hashed Phone Book\n");
-    printf("1. Insert new phone number\n");
-    printf("2. View all phone book\n");
-    printf("3. Update phone info by name\n");
-    printf("4. Remove phone info by name\n");
-    printf("5. Search phone by name\n");
-    printf("6. Exit\n");
-    printf("Choose [ 1 - 6 ] : "); scanf("%d", &choice); getchar();
-}
-void menu01(struct hashTable *ht)
-{
-    system("cls");
-    char tempName[100] = {}, tempPhone[28] = {}, tempAddr[100] = {}, tempCity[200] = {};
-    int valPhone = 0;
-    while (strlen(tempName) < 3 || strlen(tempName) > 50)
-    {
-        printf("Insert name [ 3 - 50 characters ] : "); gets(tempName);
-    }
-    while (!valPhone)
-    {
-        printf("Insert phone number [ 08XX-XXXX-XXXX format ] : "); gets(tempPhone);
-        if (strlen(tempPhone) != 14) printf("Phone number must be 14 characters long!\n");
-        else if (tempPhone[0] != '0' || tempPhone[1] != '8') printf("Phone number must starts with 0 and 8!\n");
-        else if (tempPhone[4] != '-' || tempPhone[9] != '-') printf("Invalid format!\n");
-        else valPhone = 1;
-    }
-    while (strcmp(tempAddr + (strlen(tempAddr) - 6), "street") != 0)
-    {
-        printf("Insert address [ ends with street ] : "); gets(tempAddr);
-    }
-    while (strlen(tempCity) < 3 || strlen(tempCity) > 100)
-    {
-        printf("Insert city [ 3 - 100 characters ] : "); gets(tempCity);
-    }
-    insertItem(ht, tempName, tempName, tempPhone, tempAddr, tempCity);
-    printf("Data inserted successfully!\n");
-    printf("Press any key to continue... "); getchar();
-}
-void menu02(struct hashTable *ht)
-{
-    system("cls");
-    if (ht->count == 0) printf("There are no data!\n");
-    else
-    {
-        for (int i = 0; i < ht->size; i++)
-        {
-            struct hashItem *current = ht->items[i];
-            if (current != NULL)
-            {
-                printf("%d ->\n", i);
-                while (current != NULL)
-                {
-                    printf("\t%s %s %s %s\n", current->name, current->phone, current->address, current->city);
-                    current = current->next;
-                }
+                BSTNode *temp = root->right;
+                while (temp->left != NULL) temp = temp->left;
+                strcpy(root->name, temp->name);
+                strcpy(root->NIM, temp->NIM);
+                root->right = deleteNode(root->right, temp->name);
             }
         }
+        return root;
     }
-    printf("Press any key to continue... "); getchar();
 }
-void menu03(struct hashTable *ht)
+void viewNode(BSTNode *root)
 {
-    char tempName[100] = {}, tempPhone[28] = {}, tempAddr[100] = {}, tempCity[200] = {};
-    int valPhone = 0;
-    while (strlen(tempName) < 3 || strlen(tempName) > 50)
-    {
-        printf("Insert name [ 3 - 50 characters ] : "); gets(tempName);
-    }
-    struct hashItem *current = searchItem(ht, tempName);
-    if (current == NULL) printf("Not found!\n");
-    else
-    {
-        while (!valPhone)
-        {
-            printf("Insert phone number [ 08XX-XXXX-XXXX format ] : "); gets(tempPhone);
-            if (strlen(tempPhone) != 14) printf("Phone number must be 14 characters long!\n");
-            else if (tempPhone[0] != '0' || tempPhone[1] != '8') printf("Phone number must starts with 0 and 8!\n");
-            else if (tempPhone[4] != '-' || tempPhone[9] != '-') printf("Invalid format!\n");
-            else valPhone = 1;
-        }
-        while (strcmp(tempAddr + (strlen(tempAddr) - 6), "street") != 0)
-        {
-            printf("Insert address [ ends with street ] : "); gets(tempAddr);
-        }
-        while (strlen(tempCity) < 3 || strlen(tempCity) > 100)
-        {
-            printf("Insert city [ 3 - 100 characters ] : "); gets(tempCity);
-        }
-        strcpy(current->phone, tempPhone);
-        strcpy(current->address, tempAddr);
-        strcpy(current->city, tempCity);
-        printf("Data updated successfully!\n");
-    }
-    printf("Press any key to continue... "); getchar();
+    if (root == NULL) return;
+    viewNode(root->left);
+    printf("%-30s -- %-8s\n", root->name, root->NIM);
+    viewNode(root->right);
 }
-void menu04(struct hashTable *ht)
+
+// ============================================================================================================ Checker
+
+int checkName(const char *name)
 {
-    char tempName[100] = {};
-    while (strlen(tempName) < 3 || strlen(tempName) > 50)
+    int status = 1;
+    for (int i = 0; i < strlen(name); i++)
     {
-        printf("Insert name [ 3 - 50 characters ] : "); gets(tempName);
-    }
-    struct hashItem *current = searchItem(ht, tempName);
-    if (current == NULL) printf("Not found!\n");
-    else
-    {
-        deleteItem(ht, tempName);
-        if (ht->count == 0) printf("There are no data!\n");
-        else
+        if (!isalpha(name[i]) && name[i] != ' ')
         {
-            for (int i = 0; i < ht->size; i++)
-            {
-                struct hashItem *current = ht->items[i];
-                if (current != NULL)
-                {
-                    printf("%d ->\n", i);
-                    while (current != NULL)
-                    {
-                        printf("\t%s %s %s %s\n", current->name, current->phone, current->address, current->city);
-                        current = current->next;
-                    }
-                }
-            }
+            status = 0;
         }
     }
-    printf("Press any key to continue... "); getchar();
+    return status;
 }
-void menu05(struct hashTable *ht)
+int checkNIM(const char *NIM)
 {
-    char tempName[100] = {};
-    while (strlen(tempName) < 3 || strlen(tempName) > 50)
+    int status = 1;
+    for (int i = 0; i < strlen(NIM); i++)
     {
-        printf("Insert name [ 3 - 50 characters ] : "); gets(tempName);
+        if (!isdigit(NIM[i]))
+        {
+            status = 0;
+        }
     }
-    struct hashItem *current = searchItem(ht, tempName);
-    if (current == NULL) printf("Not found!\n");
-    else
-    {
-        printf("Data found!\n");
-        printf("%s %s %s %s\n", current->name, current->phone, current->address, current->city);
-    }
-    printf("Press any key to continue... "); getchar();
+    return status;
 }
+
+// ========================================================================================================== Main Menu
+
 int main()
 {
-    struct hashTable *ht = createTable(maxIndex);
-    while (choice != 6)
+    int choice = -1;
+    while (choice != 3)
     {
-        displayMenu();
-        if (choice == 1) menu01(ht);
-        else if (choice == 2) menu02(ht);
-        else if (choice == 3) menu03(ht);
-        else if (choice == 4) menu04(ht);
-        else if (choice == 5) menu05(ht);
-        else if (choice == 6) return 0;
+        system("cls");
+        printf("======================== Quiz Data Structures =======================\n");
+        printf("| [1] | Insert a student data to binary search tree                 |\n");
+        printf("| [2] | Delete a student data from binary search tree               |\n");
+        printf("| [3] | Close the application                                       |\n");
+        printf("=====================================================================\n");
+        printf("> Enter your choice: "); scanf("%d", &choice); fflush(stdin);
+        switch (choice)
+        {
+            case 1:
+            {
+                int check = 0;
+                char name[100] = "", NIM[100] = "";
+                while (!check)
+                {
+                    printf("> Enter student name: "); gets(name);
+                    if (strlen(name) < 3 || strlen(name) > 50)
+                    {
+                        printf("> Name must between 3 to 50 characters! Please try again.\n");
+                    }
+                    else if (checkName(name) == 0)
+                    {
+                        printf("> Name must contain alphabet and whitespace only! Please try again.\n");
+                    }
+                    else check = 1;
+                }
+                while (check)
+                {
+                    printf("> Enter student NIM : "); gets(NIM);
+                    if (strlen(NIM) != 8)
+                    {
+                        printf("> NIM must contain 8 characters only! Please try again.\n");
+                    }
+                    else if (checkNIM(NIM) == 0)
+                    {
+                        printf("> NIM must contain digits only! Please try again.\n");
+                    }
+                    else check = 0;
+                }
+                BSTNode *find = searchNode(root, name);
+                if (find != NULL)
+                {
+                    strcpy(find->NIM, NIM);
+                    printf("> Student name already exists! Update NIM instead.\n");
+                }
+                else
+                {
+                    root = insertNode(root, name, NIM);
+                    printf("> Student data has been successfully inserted.\n");
+                }
+                printf("> Press ENTER to continue..."); getchar();
+                break;
+            }
+            case 2:
+            {
+                if (root == NULL)
+                {
+                    printf("> No data registered yet. Please register one.\n");
+                    printf("> Press ENTER to continue..."); getchar();
+                    break;
+                }
+                int check = 0;
+                char name[100] = "";
+                while (!check)
+                {
+                    printf("> Enter student name: "); gets(name);
+                    if (strlen(name) < 3 || strlen(name) > 50)
+                    {
+                        printf("> Name must between 3 to 50 characters! Please try again.\n");
+                    }
+                    else if (checkName(name) == 0)
+                    {
+                        printf("> Name must contain alphabet and whitespace only! Please try again.\n");
+                    }
+                    else check = 1;
+                }
+                BSTNode *find = searchNode(root, name);
+                if (find == NULL)
+                {
+                    printf("> Cannot delete because student name does not exist.\n");
+                }
+                else
+                {
+                    root = deleteNode(root, name);
+                    printf("> Student data has been successfully deleted.\n");
+                }
+                printf("> Press ENTER to continue..."); getchar();
+                break;
+            }
+            case 3:
+            {
+                printf("> Thank you for using this application. Goodbye!\n");
+                printf("> Press ENTER to continue..."); getchar();
+                exit(0);
+                break;
+            }
+            default:
+            {
+                printf("> Invalid choice! Please try again.\n");
+                printf("> Press ENTER to continue..."); getchar();
+                break;
+            }
+        }
     }
     return 0;
 }
