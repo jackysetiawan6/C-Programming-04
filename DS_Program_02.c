@@ -1,3 +1,12 @@
+/*
+    Quiz Data Structures
+    1. Create a binary search tree to store student data. Each node of the tree contains student name and NIM.
+    2. The application must be able to insert and delete a student data from the tree.
+    3. Inserting existing student name will update the NIM instead.
+    4. Sort the tree in ascending order by student name.
+    5. The application must be able to check the validity of the student name and NIM.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
