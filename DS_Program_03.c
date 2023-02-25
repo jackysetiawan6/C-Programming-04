@@ -3,9 +3,6 @@
 #include <string.h>
 #include <time.h>
 #include <windows.h>
-
-// ============================================================================================= MAIN
-
 void menu00()
 {
     system("cls");
