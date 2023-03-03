@@ -5,7 +5,7 @@
 int count = 0;
 typedef struct BST
 {
-    char name[150]; int rating, playedHours, index;
+    char name[150]; int rating, playedHours;
     struct BST *left, *right;
 } BST;
 BST *root = NULL;
@@ -15,7 +15,6 @@ BST *createNode(char name[], int rating, int playedHours)
     strcpy(newNode->name, name);
     newNode->rating = rating;
     newNode->playedHours = playedHours;
-    newNode->index = ++count;
     newNode->left = newNode->right = NULL;
     return newNode;
 }
@@ -71,23 +70,22 @@ BST *search(BST *root, char name[])
 }
 typedef struct RPQ
 {
-    char name[150]; int rating, playedHours, index;
+    char name[150]; int rating, playedHours;
     struct RPQ *next;
 } RPQ;
 RPQ *front = NULL;
-RPQ *createRPQNode(char name[], int rating, int playedHours, int index)
+RPQ *createRPQNode(char name[], int rating, int playedHours)
 {
     RPQ *newNode = (RPQ *)malloc(sizeof(RPQ));
     strcpy(newNode->name, name);
     newNode->rating = rating;
     newNode->playedHours = playedHours;
-    newNode->index = index;
     newNode->next = NULL;
     return newNode;
 }
-void insertRPQ(char name[], int rating, int playedHours, int index)
+void insertRPQ(char name[], int rating, int playedHours)
 {
-    RPQ *newNode = createRPQNode(name, rating, playedHours, index);
+    RPQ *newNode = createRPQNode(name, rating, playedHours);
     if (front == NULL || newNode->rating > front->rating)
     {
         newNode->next = front;
@@ -98,12 +96,6 @@ void insertRPQ(char name[], int rating, int playedHours, int index)
         RPQ *temp = front;
         while (temp->next != NULL && temp->next->rating >= newNode->rating)
         {
-            if (temp->next->rating == newNode->rating && temp->next->index > newNode->index)
-            {
-                newNode->next = temp->next;
-                temp->next = newNode;
-                return;
-            }
             temp = temp->next;
         }
         newNode->next = temp->next;
@@ -114,7 +106,7 @@ void inOrder(BST *root)
 {
     if (root == NULL) return;
     inOrder(root->left);
-    insertRPQ(root->name, root->rating, root->playedHours, root->index);
+    insertRPQ(root->name, root->rating, root->playedHours);
     printf("| %-43s | %-6d | %-12d |\n", root->name, root->rating, root->playedHours);
     inOrder(root->right);
 }
@@ -216,15 +208,15 @@ void menu04()
 }
 void initializeData()
 {
-    root = insert(root, "Grand Chase", 9, 1000);
-    root = insert(root, "The Witcher 3", 9, 2000);
-    root = insert(root, "Sekiro", 9, 1000);
-    root = insert(root, "Dota 2", 9, 213);
-    root = insert(root, "Frostpunk", 9, 2);
-    root = insert(root, "CSGO", 9, 444);
-    root = insert(root, "Elden Ring", 9, 1);
-    root = insert(root, "Arknights", 9, 2);
-    root = insert(root, "Ace Combat", 9, 5);
+    root = insert(root, "Grand Chase", 9, 1000); count++;
+    root = insert(root, "The Witcher 3", 9, 2000); count++;
+    root = insert(root, "Sekiro", 9, 1000); count++;
+    root = insert(root, "Dota 2", 9, 213); count++;
+    root = insert(root, "Frostpunk", 9, 2); count++;
+    root = insert(root, "CSGO", 9, 444); count++;
+    root = insert(root, "Elden Ring", 9, 1); count++;
+    root = insert(root, "Arknights", 9, 2); count++;
+    root = insert(root, "Ace Combat", 9, 5); count++;
 }
 int main()
 {
