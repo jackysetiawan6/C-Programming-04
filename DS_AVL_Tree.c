@@ -1,154 +1,141 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-typedef struct AVLNode
+typedef struct Food
 {
-    int value;
-    struct AVLNode *left;
-    struct AVLNode *right;
-} AVLNode;
+    char name[100];
+    int price, height;
+    struct Food *left, *right;
+} Food;
 
-AVLNode *AVLNode_new(int value)
+int calculateHeight(Food *root)
 {
-    AVLNode *node = (AVLNode*)malloc(sizeof(AVLNode));
-    node->value = value;
-    node->left = node->right = NULL;
-    return node;
+    return root == NULL ? 0 : MAX(calculateHeight(root->left), calculateHeight(root->right)) + 1;
 }
 
-int AVL_height(AVLNode *curr)
+int calculateBalanceFactor(Food *root)
 {
-    if (!curr) return 0;
-    int left = AVL_height(curr->left);
-    int right = AVL_height(curr->right);
-    return (left > right) ? left + 1 : right + 1;
+    return root == NULL ? 0 : calculateHeight(root->left) - calculateHeight(root->right);
 }
 
-AVLNode *AVLNode_rotateLeft(AVLNode *curr)
+Food *rotateRight(Food *root)
 {
-    AVLNode *temp = curr->right;
-    curr->right = temp->left;
-    temp->left = curr;
-    return temp;
+    Food *newParent = root->left;
+    root->left = newParent->right;
+    newParent->right = root;
+    root->height = calculateHeight(root);
+    newParent->height = calculateHeight(newParent);
+    return newParent;
 }
 
-AVLNode *AVLNode_rotateRight(AVLNode *curr)
+Food *rotateLeft(Food *root)
 {
-    AVLNode *temp = curr->left;
-    curr->left = temp->right;
-    temp->right = curr;
-    return temp;
+    Food *newParent = root->right;
+    root->right = newParent->left;
+    newParent->left = root;
+    root->height = calculateHeight(root);
+    newParent->height = calculateHeight(newParent);
+    return newParent;
 }
 
-AVLNode *AVLNode_rotateLeftRight(AVLNode *curr)
+Food *createFood(const char *name, int price)
 {
-    curr->left = AVLNode_rotateLeft(curr->left);
-    return AVLNode_rotateRight(curr);
+    Food *newFood = malloc(sizeof(Food));
+    strcpy(newFood->name, name);
+    newFood->price = price;
+    newFood->height = 1;
+    newFood->left = newFood->right = NULL;
+    return newFood;
 }
 
-AVLNode *AVLNode_rotateRightLeft(AVLNode *curr)
+Food *insertFood(Food *root, const char *name, int price)
 {
-    curr->right = AVLNode_rotateRight(curr->right);
-    return AVLNode_rotateLeft(curr);
-}
-
-AVLNode *AVLNode_balance(AVLNode *curr)
-{
-    int left = AVL_height(curr->left);
-    int right = AVL_height(curr->right);
-    if (left - right > 1)
+    if (root == NULL)
+        return createFood(name, price);
+    else if (root->price > price)
+        root->left = insertFood(root->left, name, price);
+    else if (root->price < price)
+        root->right = insertFood(root->right, name, price);
+    root->height = calculateHeight(root);
+    int balanceFactor = calculateBalanceFactor(root);
+    if (balanceFactor > 1)
     {
-        int left_left = AVL_height(curr->left->left);
-        int left_right = AVL_height(curr->left->right);
-        if (left_left >= left_right) curr = AVLNode_rotateRight(curr);
-        else curr = AVLNode_rotateLeftRight(curr);
+        if (price > root->left->price)
+            root->left = rotateLeft(root->left);
+        return rotateRight(root);
     }
-    else if (right - left > 1)
+    else if (balanceFactor < -1)
     {
-        int right_left = AVL_height(curr->right->left);
-        int right_right = AVL_height(curr->right->right);
-        if (right_right >= right_left) curr = AVLNode_rotateLeft(curr);
-        else curr = AVLNode_rotateRightLeft(curr);
+        if (price < root->right->price)
+            root->right = rotateRight(root->right);
+        return rotateLeft(root);
     }
-    return curr;
+    return root;
 }
 
-AVLNode *AVLNode_insert(AVLNode *curr, int value)
+Food *updateFood(Food *root, const char *name, int price)
 {
-    if (!curr) return AVLNode_new(value);
-    else if (value < curr->value) curr->left = AVLNode_insert(curr->left, value);
-    else if (value > curr->value) curr->right = AVLNode_insert(curr->right, value);
-    return AVLNode_balance(curr);
-}
-
-AVLNode *AVLNode_search(AVLNode *curr, int value)
-{
-    if (!curr) return NULL;
-    else if (value < curr->value) return AVLNode_search(curr->left, value);
-    else if (value > curr->value) return AVLNode_search(curr->right, value);
-    else return curr;
-}
-
-AVLNode *AVLNode_remove(AVLNode *curr, int value)
-{
-    if (!curr) return NULL;
-    else if (value < curr->value) curr->left = AVLNode_remove(curr->left, value);
-    else if (value > curr->value) curr->right = AVLNode_remove(curr->right, value);
+    if (root == NULL)
+        return NULL;
+    else if (root->price > price)
+        root->left = updateFood(root->left, name, price);
+    else if (root->price < price)
+        root->right = updateFood(root->right, name, price);
     else
     {
-        if (!curr->left && !curr->right)
-        {
-            free(curr);
-            curr = NULL;
-        }
-        else if (!curr->left)
-        {
-            AVLNode *temp = curr->right;
-            free(curr);
-            curr = temp;
-        }
-        else if (!curr->right)
-        {
-            AVLNode *temp = curr->left;
-            free(curr);
-            curr = temp;
-        }
-        else
-        {
-            AVLNode *temp = curr->right;
-            while (temp->left) temp = temp->left;
-            curr->value = temp->value;
-            curr->right = AVLNode_remove(curr->right, temp->value);
-        }
+        strcpy(root->name, name);
+        root->price = price;
     }
-    return curr;
+    return root;
 }
 
-void AVLNode_print(AVLNode *curr)
+void preOrder(Food *root)
 {
-    if (!curr) return;
-    printf("%d ", curr->value);
-    AVLNode_print(curr->left);
-    AVLNode_print(curr->right);
+    if (root == NULL)
+        return;
+    printf("Name: %-20s -- Price: %-10d -- Height: %d -- Balance Factor: %d\n", root->name, root->price, root->height, calculateBalanceFactor(root));
+    preOrder(root->left);
+    preOrder(root->right);
+    return;
+}
+
+void inOrder(Food *root)
+{
+    if (root == NULL)
+        return;
+    inOrder(root->left);
+    printf("Name: %-20s -- Price: %-10d -- Height: %d -- Balance Factor: %d\n", root->name, root->price, root->height, calculateBalanceFactor(root));
+    inOrder(root->right);
+    return;
+}
+
+void postOrder(Food *root)
+{
+    if (root == NULL)
+        return;
+    postOrder(root->left);
+    postOrder(root->right);
+    printf("Name: %-20s -- Price: %-10d -- Height: %d -- Balance Factor: %d\n", root->name, root->price, root->height, calculateBalanceFactor(root));
+    return;
 }
 
 int main()
 {
-    AVLNode *root = NULL;
-    root = AVLNode_insert(root, 10);
-    root = AVLNode_insert(root, 9);
-    root = AVLNode_insert(root, 8);
-    root = AVLNode_insert(root, 7);
-    root = AVLNode_insert(root, 6);
-    root = AVLNode_insert(root, 5);
-    root = AVLNode_insert(root, 4);
-    root = AVLNode_insert(root, 3);
-    root = AVLNode_insert(root, 2);
-    root = AVLNode_insert(root, 1);
-    root = AVLNode_balance(root);
-    printf("Root Value : %d\n", root->value);
-    printf("Tree Height: %d\n", AVL_height(root));
-    AVLNode_print(root);
+    system("cls");
+    Food *root = NULL;
+    printf("===== Initial Food:\n");
+    root = insertFood(root, "Sate Padang", 34000);
+    root = insertFood(root, "Sate Kambing", 30000);
+    root = insertFood(root, "Sate Ayam", 28000);
+    root = insertFood(root, "Sate Kelinci", 26000);
+    root = insertFood(root, "Sate Taichan", 24000);
+    root = insertFood(root, "Sate Babi", 22000);
+    inOrder(root);
     printf("\n");
+    printf("===== Update Food:\n");
+    root = updateFood(root, "Sate Taichan Pedas", 24000);
+    inOrder(root);
     return 0;
 }
